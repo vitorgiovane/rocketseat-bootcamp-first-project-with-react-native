@@ -1,9 +1,22 @@
 import React, { Component } from 'react'
-import { Container, Form, Input, SubmitButton } from './styles'
-import api from '../../services/api'
-import { Keyboard } from 'react-native'
+import {
+  Container,
+  Form,
+  Input,
+  SubmitButton,
+  List,
+  User,
+  Avatar,
+  Name,
+  Bio,
+  ProfileButton,
+  ProfileButtonText
+} from './styles'
 
+import { Keyboard } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialIcons'
+
+import api from '../../services/api'
 
 export default class Main extends Component {
   state = {
@@ -43,11 +56,26 @@ export default class Main extends Component {
             onChangeText={text => this.setState({ newUser: text })}
             returnKeyType="send"
             onSubmitEditing={this.handleAddNewUser}
+            value={this.state.newUser}
           />
           <SubmitButton onPress={this.handleAddNewUser}>
             <Icon name="add" size={20} color="#fff" />
           </SubmitButton>
         </Form>
+        <List
+          data={users}
+          keyExtractor={user => user.login}
+          renderItem={({ item }) => (
+            <User>
+              <Avatar source={{ uri: item.avatar }} />
+              <Name>{item.name}</Name>
+              <Bio>{item.bio}</Bio>
+              <ProfileButton onPress={() => {}}>
+                <ProfileButtonText>Open profile</ProfileButtonText>
+              </ProfileButton>
+            </User>
+          )}
+        />
       </Container>
     )
   }
