@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { ActivityIndicator } from 'react-native'
 import PropTypes from 'prop-types'
 
 import api from '../../services/api'
@@ -18,7 +19,8 @@ import {
 
 export default class User extends Component {
   state = {
-    stars: []
+    stars: [],
+    loadingStarredRepos: false
   }
 
   static propTypes = {
@@ -35,11 +37,15 @@ export default class User extends Component {
     const { navigation } = this.props
     const user = navigation.getParam('user')
 
+    this.setState({ loadingStarredRepos: true })
+
     const response = await api.get(`/users/${user.login}/starred`)
 
     this.setState({
       stars: response.data
     })
+
+    this.setState({ loadingStarredRepos: false })
   }
 
   render() {
@@ -54,6 +60,10 @@ export default class User extends Component {
           <Name>{user.name}</Name>
           <Bio>{user.bio}</Bio>
         </Header>
+
+        {this.state.loadingStarredRepos && (
+          <ActivityIndicator color="#7159C1" size={150} />
+        )}
 
         <Stars
           data={stars}
