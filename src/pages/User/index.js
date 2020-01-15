@@ -22,7 +22,8 @@ export default class User extends Component {
     stars: [],
     page: 1,
     loadingStarredRepos: false,
-    stopRequestRepos: false
+    stopRequestRepos: false,
+    refreshing: false
   }
 
   static propTypes = {
@@ -35,42 +36,50 @@ export default class User extends Component {
     title: navigation.getParam('user').name
   })
 
-  async componentDidMount() {
+  requestRepos = async () => {
     const { navigation } = this.props
-    const { page } = this.state
     const user = navigation.getParam('user')
-
-    this.setState({ loadingStarredRepos: true })
-
+    const { page } = this.state
     const response = await api.get(`/users/${user.login}/starred?page=${page}`)
 
-    this.setState({
-      stars: response.data
-    })
+    return response.data
+  }
 
-    this.setState({ loadingStarredRepos: false })
+  async componentDidMount() {
+    this.setState({ loadingStarredRepos: true })
+    const { stars } = this.state
+    const repositories = await this.requestRepos()
+
+    this.setState({
+      stars: [...stars, ...repositories],
+      loadingStarredRepos: false
+    })
   }
 
   loadMoreStarredRepos = async () => {
     if (this.state.stopRequestRepos) return
-    const { navigation } = this.props
     const { page, stars } = this.state
 
     const nextPage = page + 1
 
     await this.setState({ page: nextPage })
 
-    const user = navigation.getParam('user')
-    const response = await api.get(
-      `/users/${user.login}/starred?page=${this.state.page}`
-    )
+    const repositories = await this.requestRepos()
 
-    if (response.data.length <= 0) return
-
-    if (response.data.length < 30) this.setState({ stopRequestRepos: true })
+    if (repositories.length <= 0) return
+    if (repositories.length < 30) this.setState({ stopRequestRepos: true })
 
     this.setState({
-      stars: [...stars, ...response.data]
+      stars: [...stars, ...repositories]
+    })
+  }
+
+  refreshList = async () => {
+    const firtsPage = 1
+    await this.setState({ page: firtsPage, stopRequestRepos: false })
+    const repositories = await this.requestRepos()
+    this.setState({
+      stars: repositories
     })
   }
 
@@ -103,8 +112,10 @@ export default class User extends Component {
               </Info>
             </Starred>
           )}
-          onEndReachedThreshold={0.2}
+          onEndReachedThreshold={0.3}
           onEndReached={this.loadMoreStarredRepos}
+          onRefresh={this.refreshList}
+          refreshing={this.state.refreshing}
         />
       </Container>
     )
