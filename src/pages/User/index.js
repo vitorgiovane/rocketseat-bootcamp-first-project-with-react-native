@@ -20,7 +20,9 @@ import {
 export default class User extends Component {
   state = {
     stars: [],
-    loadingStarredRepos: false
+    page: 1,
+    loadingStarredRepos: false,
+    stopRequestRepos: false
   }
 
   static propTypes = {
@@ -35,17 +37,41 @@ export default class User extends Component {
 
   async componentDidMount() {
     const { navigation } = this.props
+    const { page } = this.state
     const user = navigation.getParam('user')
 
     this.setState({ loadingStarredRepos: true })
 
-    const response = await api.get(`/users/${user.login}/starred`)
+    const response = await api.get(`/users/${user.login}/starred?page=${page}`)
 
     this.setState({
       stars: response.data
     })
 
     this.setState({ loadingStarredRepos: false })
+  }
+
+  loadMoreStarredRepos = async () => {
+    if (this.state.stopRequestRepos) return
+    const { navigation } = this.props
+    const { page, stars } = this.state
+
+    const nextPage = page + 1
+
+    await this.setState({ page: nextPage })
+
+    const user = navigation.getParam('user')
+    const response = await api.get(
+      `/users/${user.login}/starred?page=${this.state.page}`
+    )
+
+    if (response.data.length <= 0) return
+
+    if (response.data.length < 30) this.setState({ stopRequestRepos: true })
+
+    this.setState({
+      stars: [...stars, ...response.data]
+    })
   }
 
   render() {
@@ -77,6 +103,8 @@ export default class User extends Component {
               </Info>
             </Starred>
           )}
+          onEndReachedThreshold={0.2}
+          onEndReached={this.loadMoreStarredRepos}
         />
       </Container>
     )
