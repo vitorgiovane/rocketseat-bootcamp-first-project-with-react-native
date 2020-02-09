@@ -5,6 +5,9 @@
 <h3 align="center">
   Primeiro projeto com React Native
 </h3>
+<p align="center">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-%2304D361">
+</p>
 
 ## Main (Users list)
 ![Users](https://user-images.githubusercontent.com/5404361/72226981-1f8d7a00-3576-11ea-95c8-aa9998d1a483.png)
